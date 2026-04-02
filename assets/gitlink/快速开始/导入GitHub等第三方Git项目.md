@@ -1,8 +1,3 @@
----
-sidebar_label: '导入GitHub等第三方Git项目'      
-sidebar_position: 5     
----
-
 # 导入GitHub等第三方Git项目
 
 ## 1. 导入项目
@@ -31,31 +26,31 @@ sidebar_position: 5
 
 2. 访问用户头像下的settings菜单
 
-   ![img](https://forum.gitlink.org.cn/api/attachments/422328)
+![img](https://forum.gitlink.org.cn/api/attachments/422328)
 
 3. 访问最下方的Developer settings
 
-   ![img](https://forum.gitlink.org.cn/api/attachments/422329)
+![img](https://forum.gitlink.org.cn/api/attachments/422329)
 
 4. 在跳转页访问Token（classic），新建一个classic token（若已保存token）
 
-   ![img](https://forum.gitlink.org.cn/api/attachments/422362)
+![img](https://forum.gitlink.org.cn/api/attachments/422362)
 
 5. 在token配置页面，输入token用途，并确保该token已勾选“repo”选项，否则将导入失败
 
-   ![img](https://forum.gitlink.org.cn/api/attachments/422364)
+![img](https://forum.gitlink.org.cn/api/attachments/422364)
 
-   点击创建按钮
+点击创建按钮
 
-   ![img](https://forum.gitlink.org.cn/api/attachments/422366)
+![img](https://forum.gitlink.org.cn/api/attachments/422366)
 
 6. 复制该token
 
-   ![img](https://forum.gitlink.org.cn/api/attachments/422368)
+![img](https://forum.gitlink.org.cn/api/attachments/422368)
 
-   并将该token输入至GitLink导入项目认证填写框
+并将该token输入至GitLink导入项目认证填写框
 
-   ![img](https://forum.gitlink.org.cn/api/attachments/422376)
+![img](https://forum.gitlink.org.cn/api/attachments/422376)
 
 ### Gitee token获取方式
 
@@ -63,23 +58,23 @@ sidebar_position: 5
 
 2. 访问用户头像下的设置菜单
 
-   ![img](https://forum.gitlink.org.cn/api/attachments/422333)
+![img](https://forum.gitlink.org.cn/api/attachments/422333)
 
 3. 访问“安全设置”栏下方“私人令牌”菜单
 
-   ![img](https://forum.gitlink.org.cn/api/attachments/422334)
+![img](https://forum.gitlink.org.cn/api/attachments/422334)
 
 4. 点击生成新令牌，并在令牌生成页面配置令牌名称，并确保令牌已勾选“project”权限选项，并保存该令牌
 
-   ![img](https://forum.gitlink.org.cn/api/attachments/422371)
+![img](https://forum.gitlink.org.cn/api/attachments/422371)
 
-   ![img](https://forum.gitlink.org.cn/api/attachments/422370)
+![img](https://forum.gitlink.org.cn/api/attachments/422370)
 
 5. 在令牌生成成功的弹窗，复制该令牌，并将该token输入至GitLink导入项目认证填写框
 
-   ![img](https://forum.gitlink.org.cn/api/attachments/422374)
+![img](https://forum.gitlink.org.cn/api/attachments/422374)
 
-   ![img](https://forum.gitlink.org.cn/api/attachments/422375)
+![img](https://forum.gitlink.org.cn/api/attachments/422375)
 
 ## 4. 导入成功
 
