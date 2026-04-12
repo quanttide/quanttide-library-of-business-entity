@@ -1,126 +1,150 @@
 #!/usr/bin/env python3
-"""Agent Skills 文档爬虫 - 从 agentskills.io 获取文档"""
+"""Agent Skills 文档爬虫 - 从 GitHub 仓库获取 MDX 源文件"""
 
-import os
 import shutil
-import requests
 from pathlib import Path
-from bs4 import BeautifulSoup
+import re
 
-BASE_URL = "https://agentskills.io"
+REPO_DIR = "/tmp/agentskills/docs"
 OUTPUT_DIR = "assets/library/assets/agentskills"
 
 PAGES = [
-    ("home", "/home"),
-    ("what-are-skills", "/what-are-skills"),
-    ("specification", "/specification"),
-    ("clients", "/clients"),
-    ("skill-creation-quickstart", "/skill-creation/quickstart"),
-    ("skill-creation-best-practices", "/skill-creation/best-practices"),
+    ("overview.md", "home.mdx", "Overview"),
+    ("concept/what-are-skills.md", "what-are-skills.mdx", "What are skills?"),
+    ("specification.md", "specification.mdx", "Specification"),
+    ("clients.md", "clients.mdx", "Client Showcase"),
+    ("skill-creation/quickstart.md", "skill-creation/quickstart.mdx", "Quickstart"),
     (
-        "skill-creation-optimizing-descriptions",
-        "/skill-creation/optimizing-descriptions",
+        "skill-creation/best-practices.md",
+        "skill-creation/best-practices.mdx",
+        "Best practices",
     ),
-    ("skill-creation-evaluating-skills", "/skill-creation/evaluating-skills"),
-    ("skill-creation-using-scripts", "/skill-creation/using-scripts"),
     (
-        "client-implementation-adding-skills-support",
-        "/client-implementation/adding-skills-support",
+        "skill-creation/optimizing-descriptions.md",
+        "skill-creation/optimizing-descriptions.mdx",
+        "Optimizing descriptions",
+    ),
+    (
+        "skill-creation/evaluating-skills.md",
+        "skill-creation/evaluating-skills.mdx",
+        "Evaluating skills",
+    ),
+    (
+        "skill-creation/using-scripts.md",
+        "skill-creation/using-scripts.mdx",
+        "Using scripts",
+    ),
+    (
+        "client-implementation/adding-skills-support.md",
+        "client-implementation/adding-skills-support.mdx",
+        "Adding skills support",
     ),
 ]
 
 
-def fetch_page(path: str) -> str:
-    url = BASE_URL + path
-    print(f"Fetching: {url}")
-    response = requests.get(url, timeout=30)
-    response.raise_for_status()
-    return response.text
+def process_mdx(content: str, title: str) -> str:
+    lines = content.split("\n")
+    in_frontmatter = False
+    md_lines = []
+    skip_until_newline = False
 
+    for i, line in enumerate(lines):
+        stripped = line.strip()
 
-def extract_content(html: str, page_name: str) -> str:
-    soup = BeautifulSoup(html, "html.parser")
+        if stripped == "---":
+            if not in_frontmatter:
+                in_frontmatter = True
+                continue
+            else:
+                in_frontmatter = False
+                continue
 
-    main_content = soup.find("main")
-    if not main_content:
-        return ""
+        if in_frontmatter:
+            continue
 
-    title = soup.find("title")
-    title_text = (
-        title.get_text(strip=True) if title else page_name.replace("-", " ").title()
-    )
+        if stripped.startswith("import ") or stripped.startswith("export "):
+            continue
 
-    article = main_content.find("article")
-    if article:
-        content = article
-    else:
-        content = main_content
+        if stripped.startswith("<Card"):
+            skip_until_newline = True
+            continue
+        if stripped == "</Card>" or stripped == "/>":
+            skip_until_newline = False
+            continue
+        if skip_until_newline:
+            continue
 
-    for tag in content.find_all(
-        ["script", "style", "nav", "header", "footer", "aside"]
-    ):
-        tag.decompose()
+        if stripped.startswith("<CardGroup") or stripped.startswith("</CardGroup"):
+            continue
+        if stripped.startswith("<LogoCarousel") or stripped.startswith(
+            "</LogoCarousel"
+        ):
+            continue
+        if stripped.startswith(">"):
+            continue
 
-    markdown = f"# {title_text}\n\n"
+        md_lines.append(line)
 
-    for p in content.find_all(
-        [
-            "p",
-            "h1",
-            "h2",
-            "h3",
-            "h4",
-            "h5",
-            "h6",
-            "ul",
-            "ol",
-            "pre",
-            "code",
-            "blockquote",
-        ]
-    ):
-        if p.name == "p":
-            text = p.get_text(strip=True)
-            if text:
-                markdown += text + "\n\n"
-        elif p.name.startswith("h"):
-            level = int(p.name[1])
-            markdown += "#" * level + " " + p.get_text(strip=True) + "\n\n"
-        elif p.name in ["ul", "ol"]:
-            for li in p.find_all("li", recursive=False):
-                markdown += "- " + li.get_text(strip=True).replace("\n", " ") + "\n"
-            markdown += "\n"
-        elif p.name == "pre":
-            code = p.get_text(strip=True)
-            markdown += f"```\n{code}\n```\n\n"
-        elif p.name == "blockquote":
-            markdown += "> " + p.get_text(strip=True) + "\n\n"
+    md = f"# {title}\n\n"
+    md += "\n".join(md_lines)
 
-    return markdown
+    md = re.sub(r"\n{3,}", "\n\n", md)
+
+    return md.strip()
 
 
 def main():
-    print("Scraping Agent Skills documentation...")
+    print("Processing Agent Skills documentation from GitHub...")
 
-    if os.path.exists(OUTPUT_DIR):
+    if Path(OUTPUT_DIR).exists():
         shutil.rmtree(OUTPUT_DIR)
-    os.makedirs(OUTPUT_DIR)
+    Path(OUTPUT_DIR).mkdir(parents=True, exist_ok=True)
 
-    for filename, path in PAGES:
-        try:
-            html = fetch_page(path)
-            content = extract_content(html, filename)
+    for output_file, source_file, title in PAGES:
+        source = Path(REPO_DIR) / source_file
 
-            output_file = Path(OUTPUT_DIR) / f"{filename}.md"
-            output_file.write_text(content, encoding="utf-8")
-            print(f"Saved: {output_file}")
-        except Exception as e:
-            print(f"Error fetching {path}: {e}")
+        if not source.exists():
+            print(f"Source not found: {source}")
+            continue
 
-    index_content = "# Agent Skills\n\n## 文档目录\n\n"
-    for filename, path in PAGES:
-        title = filename.replace("-", " ").title()
-        index_content += f"- [{title}]({filename}.md)\n"
+        content = source.read_text(encoding="utf-8")
+        md_content = process_mdx(content, title)
+
+        output_path = Path(OUTPUT_DIR) / output_file
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+
+        output_path.write_text(md_content, encoding="utf-8")
+        print(f"Saved: {output_path}")
+
+    index_content = """# Agent Skills
+
+Agent Skills 是一个简单、开放的格式，用于为 AI 代理提供新能力和专业知识。
+
+## 文档目录
+
+### 概念
+- [什么是技能？](concept/what-are-skills.md)
+
+### 规范
+- [规范说明](specification.md)
+
+### 展示
+- [客户端展示](clients.md)
+
+### 技能创建（For skill creators）
+- [快速开始](skill-creation/quickstart.md)
+- [最佳实践](skill-creation/best-practices.md)
+- [优化描述](skill-creation/optimizing-descriptions.md)
+- [评估技能](skill-creation/evaluating-skills.md)
+- [使用脚本](skill-creation/using-scripts.md)
+
+### 客户端实现（For client implementors）
+- [添加技能支持](client-implementation/adding-skills-support.md)
+
+---
+
+来源: https://github.com/agentskills/agentskills
+"""
 
     (Path(OUTPUT_DIR) / "README.md").write_text(index_content, encoding="utf-8")
     print("\nDone! Docs saved to " + OUTPUT_DIR)
