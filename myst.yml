@@ -1,0 +1,7 @@
+version: 1
+project:
+  title: 量潮科技图书馆
+  description: 量潮科技图书馆
+  license: CC-BY-4.0
+site:
+  template: book-theme
