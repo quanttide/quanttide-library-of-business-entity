@@ -3,5 +3,8 @@ project:
   title: 量潮科技图书馆
   description: 量潮科技图书馆
   license: CC-BY-4.0
+  toc:
+    - file: docs/mitmproxy.md
+    - file: docs/posthog.md
 site:
   template: book-theme
