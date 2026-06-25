@@ -1,135 +1,55 @@
-# PostHog 参考
+# PostHog 透明文化参考
 
-## 概述
+## 公司概况
 
-PostHog 是一个开源产品分析平台，提供事件追踪、会话录制、特征开关、A/B 测试、热力图等功能。
+PostHog 是一家开源产品分析公司，2020 年由 James Hawkins、Tim Glaser 等人创立。其产品提供事件追踪、会话录制、特征开关、A/B 测试、热力图等功能。公司采用 **100% 远程** 模式，团队分布在全球 20 多个国家，目前约 206 人。
 
-## 部署方式
+## 透明文化
 
-### PostHog Cloud
+### 极致的透明度
 
-SaaS 版本，直接注册使用：https://app.posthog.com
+PostHog 大部分沟通在 GitHub 上公开进行：
 
-### 自托管
+- **公开路线图** — 任何人都能看到产品方向
+- **开源手册** — 招聘流程、薪资计算方式、如何给投资人发邮件，全部公开在 handbook 中
+- **公开编辑** — 几乎一切内容都允许任何人编辑和提反馈
 
-```bash
-# 使用 Docker 部署
-git clone https://github.com/PostHog/posthog.git
-cd posthog
+### 写下来
 
-# 启动（含 Postgres、Redis、Celery）
-docker compose -f docker-compose.yml up -d
-```
+全远程团队以**异步沟通**为起点，通过公开的 issue、PR 进行沟通，尽量减少 Slack 使用。
 
-## 核心概念
+- 书面沟通比对话更清晰，确保全员方向一致
+- 书面沟通具有杠杆效应，适合大规模社区和全球化招聘
+- 反对"不联系就是默拒"——面试反馈必须在流程中强制存在
 
-| 概念 | 说明 |
-|------|------|
-| Event | 用户行为事件（如 pageview、button_click） |
-| Person | 用户（匿名或已识别），通过 distinct_id 关联 |
-| Action | 事件的聚合规则（如"用户注册"= signup 事件） |
-| Cohort | 用户分组（如"过去 7 天活跃用户"） |
-| Dashboard | 仪表盘，组合多个图表的看板 |
-| Feature Flag | 特征开关，按用户/属性控制功能可见性 |
-| Session Recording | 会话录制，回放用户操作轨迹 |
+### 直接反馈
 
-## SDK 接入
+鼓励尽早、频繁地给出直接反馈。每个人都应该帮助其他人提升水准。工作完成后往往容易疲劳，难以客观判断质量，外部的新鲜视角更容易发现问题。
 
-### JavaScript / TypeScript
+### 行动优先
 
-```bash
-npm install posthog-js
-```
+宁可先上线，再迭代。如果无法上线，就缩小任务规模直到能上线。默认不需要请求许可——只要行为符合公司最佳利益。
 
-```typescript
-import posthog from 'posthog-js'
+### 创作者日程
 
-posthog.init('<PROJECT_API_KEY>', {
-  api_host: 'https://app.posthog.com', // 自托管时改为自己的地址
-})
+遵循 maker's schedule（创作者日程）。会议集中在站立会附近，避免拆分工作日。周二和周四不安排内部会议。
 
-// 发送事件
-posthog.capture('project_created', { name: '价格指数' })
+### 小团队 + 高度自主
 
-// 注册用户
-posthog.identify('user_123', { email: 'user@example.com' })
-```
+公司组织成小团队，尽可能下放决策权，追求速度。不搞复杂的头衔层级，因为层级会让人感觉无权做出改变。
 
-### Python
+管理方式简单：小团队向团队负责人汇报，团队负责人向四位高管之一汇报。
 
-```bash
-pip install posthog
-```
+### 招聘中的透明度体现
 
-```python
-import posthog
+PostHog 的招聘流程同样贯彻透明原则：
 
-posthog.project_api_key = '<PROJECT_API_KEY>'
-posthog.host = 'https://app.posthog.com'
-
-posthog.capture('user_123', 'task_completed', {
-    'task_type': 'data_cleaning',
-    'duration': 3600,
-})
-```
-
-## 关键功能
-
-### 事件自动采集（可选）
-
-PostHog 默认自动采集 pageview、click、rageclick 等事件，也可通过配置关闭：
-
-```typescript
-posthog.init('<KEY>', {
-  autocapture: false,        // 关闭自动采集
-  capture_pageview: false,   // 关闭页面浏览采集
-})
-```
-
-### Session Recording
-
-录制用户会话，回放鼠标移动、点击、滚动、输入：
-
-```typescript
-posthog.init('<KEY>', {
-  session_recording: {
-    mask_all_text: true,             // 屏蔽文本内容
-    mask_all_element_attributes: true, // 屏蔽元素属性
-  },
-})
-```
-
-### Feature Flags
-
-```typescript
-// 判断用户是否有某特征
-if (posthog.isFeatureEnabled('new-dashboard')) {
-  renderNewDashboard()
-} else {
-  renderOldDashboard()
-}
-```
-
-### 上报数据类型的约定
-
-| Payload 字段 | 必填 | 说明 |
-|-------------|------|------|
-| `distinct_id` | 是 | 用户唯一标识 |
-| `event` | 是 | 事件名称（snake_case 约定） |
-| `properties` | 否 | 事件属性（同级属性打平，不要嵌套） |
-| `timestamp` | 否 | 默认取服务器时间 |
-
-## 自托管系统要求
-
-| 组件 | 建议配置 |
-|------|---------|
-| CPU | 2 核以上 |
-| 内存 | 8 GB 以上 |
-| 存储 | 50 GB SSD（取决于数据量） |
-| 依赖 | Postgres、Redis、Celery（可选） |
+- **笔试题来源实际工作** — 考真实场景下的决策逻辑，而非知识记忆
+- **结果分三档** — 直接完成的录用，有成长空间的走实训，都不行的建议转岗
+- **面试反馈必须书面发送** — 面试结束后必须通过邮件正式反馈结果，确保候选人不会空等
 
 ## 参考链接
 
-- 官方文档：https://posthog.com/docs
+- 文化手册：https://posthog.com/handbook/company/culture
+- 团队：https://posthog.com/handbook/company/team
 - GitHub：https://github.com/PostHog/posthog
-- 定价：https://posthog.com/pricing
